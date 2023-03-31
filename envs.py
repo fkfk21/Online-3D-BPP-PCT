@@ -10,17 +10,17 @@ from wrapper.shmem_vec_env import ShmemVecEnv
 from wrapper.dummy_vec_env import DummyVecEnv
 
 try:
-    import dm_control2gym
+    import dm_control2gym  # type: ignore
 except ImportError:
     pass
 
 try:
-    import roboschool
+    import roboschool  # type: ignore
 except ImportError:
     pass
 
 try:
-    import pybullet_envs
+    import pybullet_envs  # type: ignore
 except ImportError:
     pass
 
@@ -43,8 +43,11 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args):
                            shuffle = args.shuffle,
                            sample_from_distribution = args.sample_from_distribution,
                            sample_left_bound = args.sample_left_bound,
-                           sample_right_bound = args.sample_right_bound
+                           sample_right_bound = args.sample_right_bound,
+                           disable_env_checker = True
                            )
+        
+        assert type(env) is gym.Env
 
         env.seed(seed + rank)
 
@@ -101,7 +104,8 @@ def make_vec_envs(args,
                        shuffle=args.shuffle,
                        sample_from_distribution=args.sample_from_distribution,
                        sample_left_bound=args.sample_left_bound,
-                       sample_right_bound=args.sample_right_bound
+                       sample_right_bound=args.sample_right_bound,
+                       disable_env_checker = True
                        )
 
         spaces = [env.observation_space, env.action_space]

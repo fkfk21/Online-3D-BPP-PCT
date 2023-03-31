@@ -1,7 +1,6 @@
 import sys
+import torch
 import torch.cuda
-if '/opt/ros/kinetic/lib/python2.7/dist-packages' in sys.path:
-    sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 import time
 from model import *
 from tools import *
@@ -26,7 +25,7 @@ def main(args):
         torch.cuda.set_device(args.device)
 
     torch.set_num_threads(1)
-    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.deterministic = True  # type: ignore
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)

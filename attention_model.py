@@ -13,16 +13,16 @@ class AttentionModelFixed(NamedTuple):
     glimpse_val: torch.Tensor
     logit_key: torch.Tensor
 
+    # https://github.com/wouterkool/attention-learn-to-route/commit/6c5b78ec74ae007b9bedb3b36c30c84db4b12002
     def __getitem__(self, key):
-        if torch.is_tensor(key) or isinstance(key, slice):
-            return AttentionModelFixed(
-                node_embeddings=self.node_embeddings[key],
-                context_node_projected=self.context_node_projected[key],
-                glimpse_key=self.glimpse_key[:, key],
-                glimpse_val=self.glimpse_val[:, key],
-                logit_key=self.logit_key[key]
-            )
-        return super(AttentionModelFixed, self).__getitem__(key)
+        assert torch.is_tensor(key) or isinstance(key, slice)
+        return AttentionModelFixed(
+            node_embeddings=self.node_embeddings[key],
+            context_node_projected=self.context_node_projected[key],
+            glimpse_key=self.glimpse_key[:, key],
+            glimpse_val=self.glimpse_val[:, key],
+            logit_key=self.logit_key[key]
+        )
 
 class AttentionModel(nn.Module):
 
