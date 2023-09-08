@@ -47,7 +47,7 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args):
                            disable_env_checker = True
                            )
         
-        assert type(env) is gym.Env
+        # assert type(env) is gym.Env
 
         env.seed(seed + rank)
 

@@ -147,7 +147,7 @@ class train_tools(object):
                       "Updates {}, num timesteps {}, FPS {}\n"
                       "Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
                       "The dist entropy {:.5f}, the value loss {:.5f}, the action loss {:.5f}\n"
-                      "The mean space ratio is {}, the ratio threshold is{}\n"
+                      "The mean space ratio is {}, the ratio threshold is {}\n"
                         .format(self.timeStr,
                                 self.step_counter, total_num_steps, int(total_num_steps / (end - start)),
                                 len(episode_rewards), np.mean(episode_rewards), np.median(episode_rewards), np.min(episode_rewards), np.max(episode_rewards),

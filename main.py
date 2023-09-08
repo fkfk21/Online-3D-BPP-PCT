@@ -1,15 +1,15 @@
-import sys
 import torch
 import torch.cuda
 import time
-from model import *
-from tools import *
+from model import *  # noqa: F403
+from tools import *  # noqa: F403
 from envs import make_vec_envs
 import numpy as np
 import random
 from train_tools import train_tools
 from tensorboardX import SummaryWriter
 from tools import get_args, registration_envs
+
 
 def main(args):
 

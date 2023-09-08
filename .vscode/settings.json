@@ -14,5 +14,8 @@
       "depth": 10,
       "includeAllSymbols": true
     },
+  ],
+  "python.linting.flake8Args": [
+    "--max-line-length=120"
   ]
 }
