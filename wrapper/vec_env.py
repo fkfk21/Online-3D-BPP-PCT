@@ -1,6 +1,7 @@
 import contextlib
 import os
 from abc import ABC, abstractmethod
+import cv2
 
 from .tile_images import tile_images
 
@@ -24,6 +25,28 @@ class NotSteppingError(Exception):
     def __init__(self):
         msg = 'not running an async step'
         Exception.__init__(self, msg)
+
+
+class SimpleImageViewer(object):
+    def __init__(self):
+        self.window_name = "SimpleImageViewer"
+        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        self.isopen = True
+
+    def imshow(self, arr):
+        if self.isopen:
+            arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)  # If the input array is in RGB format, convert it to BGR for OpenCV
+            cv2.imshow(self.window_name, arr)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.isopen = False
+                self.close()
+
+    def close(self):
+        self.isopen = False
+        cv2.destroyWindow(self.window_name)
+
+    def __del__(self):
+        self.close()
 
 
 class VecEnv(ABC):
@@ -133,8 +156,8 @@ class VecEnv(ABC):
 
     def get_viewer(self):
         if self.viewer is None:
-            from gym.envs.classic_control import rendering
-            self.viewer = rendering.SimpleImageViewer()
+            # from gym.envs.classic_control import rendering
+            self.viewer = SimpleImageViewer()
         return self.viewer
 
 class VecEnvWrapper(VecEnv):

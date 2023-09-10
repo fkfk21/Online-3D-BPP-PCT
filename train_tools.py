@@ -68,6 +68,12 @@ class train_tools(object):
                 all_nodes, leaf_nodes = tools.get_leaf_nodes(obs, args.internal_node_holder, args.leaf_node_holder)
                 all_nodes, leaf_nodes = all_nodes.to(device), leaf_nodes.to(device)
                 pct_rollout.insert(all_nodes, selectedIdx, selectedlogProb, reward, torch.tensor(1-done).unsqueeze(1))
+                # render the environment
+                if args.render:
+                    envs.render()
+                    time.sleep(1)
+
+                
 
             for _ in range(len(infos)):
                 if done[_]:

@@ -4,6 +4,7 @@ import gym
 from .binCreator import RandomBoxCreator, LoadBoxCreator, BoxCreator
 import torch
 import random
+import cv2
 
 class PackingDiscrete(gym.Env):
     def __init__(self,
@@ -44,6 +45,11 @@ class PackingDiscrete(gym.Env):
         self.next_box_vec = np.zeros((self.next_holder, 9))
 
         self.LNES = LNES  # Leaf Node Expansion Schemes: EMS (recommend), EV, EP, CP, FC
+
+        # Define the color map
+        # Define the data type as 8-bit unsigned integer
+        self.colors_map = np.array([[20*vidx, 0, 255-20*vidx] for vidx in reversed(range(11))],
+                                   dtype=np.uint8)
 
     def seed(self, seed=None):
         if seed is not None:
@@ -188,3 +194,34 @@ class PackingDiscrete(gym.Env):
         info['counter'] = len(self.space.boxes)
         return self.cur_observation(), reward, done, info
 
+
+    def render(self, mode=None, wait_time=10):
+    
+        # mode is ignored
+
+        # Get the array representation of the bin
+        vis_plain = self.space.plain
+
+        # Create the image from the array
+        image = np.empty((len(vis_plain), len(vis_plain[0]), 3), dtype=np.uint8)  # Create an empty image with 3 channels (RGB)
+        for i in range(len(vis_plain)):
+            for j in range(len(vis_plain[0])):
+                image[i][j] = self.colors_map[vis_plain[i][j]]  # Set the pixel color based on the value in the array
+
+        # Resize the image
+        expanded_image = cv2.resize(image, (30*image.shape[1], 30*image.shape[0]), interpolation=cv2.INTER_NEAREST)
+
+        # Write the values on each cell
+        font = cv2.FONT_HERSHEY_SIMPLEX  # Define the font
+        font_scale = 0.5  # Define the font scale
+        thickness = 1  # Define the line thickness
+        for i in range(len(vis_plain)):
+            for j in range(len(vis_plain[0])):
+                value = str(vis_plain[i][j])  # Convert the value to a string
+                (x, y) = (j * 30 + 5, i * 30 + 20)  # Calculate the position of the text
+                cv2.putText(expanded_image, value, (x, y), font, font_scale, (0, 0, 0), thickness, cv2.LINE_AA)
+
+        # # Display the image
+        # cv2.imshow('Bin packing view', expanded_image)
+        # cv2.waitKey(wait_time)
+        return expanded_image

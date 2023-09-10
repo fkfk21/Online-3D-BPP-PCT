@@ -90,10 +90,8 @@ class AttentionModel(nn.Module):
 
     def forward(self, input, deterministic = False, evaluate_action = False, normFactor = 1, evaluate = False):
 
-        internal_nodes, leaf_nodes, next_item, invalid_leaf_nodes, full_mask = observation_decode_leaf_node(input,
-                                                                                                            self.internal_node_holder,
-                                                                                                            self.internal_node_length,
-                                                                                                            self.leaf_node_holder)
+        internal_nodes, leaf_nodes, next_item, invalid_leaf_nodes, full_mask = \
+            observation_decode_leaf_node(input, self.internal_node_holder, self.internal_node_length, self.leaf_node_holder)
         leaf_node_mask = 1 - invalid_leaf_nodes
         valid_length = full_mask.sum(1)
         full_mask = 1 - full_mask
@@ -104,6 +102,7 @@ class AttentionModel(nn.Module):
         leaf_node_size = leaf_nodes.size(1)
         next_size = next_item.size(1)
 
+        # We use three independent node-wise Multi-Layer Perceptron (MLP) blocks to project these raw space configuration nodes
         internal_inputs = internal_nodes.contiguous().view(batch_size * internal_nodes_size, self.internal_node_length)*normFactor
         leaf_inputs = leaf_nodes.contiguous().view(batch_size * leaf_node_size, 8)*normFactor
         current_inputs = next_item.contiguous().view(batch_size * next_size, 6)*normFactor

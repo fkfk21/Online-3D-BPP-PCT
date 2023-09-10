@@ -139,6 +139,8 @@ def get_args():
     parser.add_argument('--no-cuda',action='store_true', help='Forbidden cuda')
     parser.add_argument('--device', type=int, default=0, help='Which GPU will be called')
     parser.add_argument('--seed',   type=int, default=4, help='Random seed')
+    parser.add_argument('--render', action='store_true', help='Render the environment')
+    parser.add_argument('--sleep-time', type=float, default=0.1, help='Sleep time between each step')
 
     parser.add_argument('--use-acktr', type=bool, default=True, help='Use acktr, otherwise A2C')
     parser.add_argument('--num-processes', type=int, default=64, help='The number of parallel processes used for training')
