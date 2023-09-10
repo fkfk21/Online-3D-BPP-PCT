@@ -224,4 +224,12 @@ class PackingDiscrete(gym.Env):
         # # Display the image
         # cv2.imshow('Bin packing view', expanded_image)
         # cv2.waitKey(wait_time)
-        return expanded_image
+
+        # current observation
+        leaf_nodes = [self.get_possible_position()]
+        next_box = sorted(list(self.next_box))
+        self.next_box_vec[:, 3:6] = next_box
+        self.next_box_vec[:, 0] = self.next_den
+        self.next_box_vec[:, -1] = 1
+
+        return expanded_image, self.packed, leaf_nodes, self.next_box

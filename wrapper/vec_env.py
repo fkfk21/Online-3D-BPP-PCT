@@ -2,6 +2,7 @@ import contextlib
 import os
 from abc import ABC, abstractmethod
 import cv2
+from torch.onnx.symbolic_opset9 import view
 
 from .tile_images import tile_images
 
@@ -44,6 +45,112 @@ class SimpleImageViewer(object):
     def close(self):
         self.isopen = False
         cv2.destroyWindow(self.window_name)
+
+    def __del__(self):
+        self.close()
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import threading
+
+class SimpleViewer(threading.Thread):
+    def __init__(self):
+        super().__init__()
+
+        # 2D Viewer Initialization
+        self.window_name = "SimpleImageViewer"
+        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        self.isopen_2d = True
+
+        # 3D Viewer Initialization
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        self.isopen_3d = True
+
+        # self.start()
+
+    def imshow(self, arr):
+        if self.isopen_2d:
+            arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)  # If the input array is in RGB format, convert it to BGR for OpenCV
+            cv2.imshow(self.window_name, arr)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.isopen_2d = False
+                self.close_2d()
+
+    def close_2d(self):
+        self.isopen_2d = False
+        cv2.destroyWindow(self.window_name)
+
+    # def add_box(self, x, y, z, dx, dy, dz, color='blue'):
+    #     """ Adds a box to the scene.
+
+    #     Parameters:
+    #     x, y, z: Coordinates of the bottom left corner of the box.
+    #     dx, dy, dz: Dimensions of the box along the x, y, and z axes.
+    #     color: Color of the box.
+    #     """
+    #     if self.isopen_3d:
+    #         self.ax.bar3d(x, y, z, dx, dy, dz, shade=True, color=color)
+
+    def add_box(self, x, y, z, dx, dy, dz, color='blue'):
+        # Define the 8 vertices of the box
+        verts = [
+            [x, y, z],
+            [x+dx, y, z],
+            [x+dx, y+dy, z],
+            [x, y+dy, z],
+            [x, y, z+dz],
+            [x+dx, y, z+dz],
+            [x+dx, y+dy, z+dz],
+            [x, y+dy, z+dz]
+        ]
+
+        # Define the 12 triangles composing the box
+        faces = [
+            [verts[0], verts[1], verts[5], verts[4]],
+            [verts[7], verts[6], verts[2], verts[3]],
+            [verts[0], verts[4], verts[7], verts[3]],
+            [verts[1], verts[5], verts[6], verts[2]],
+            [verts[4], verts[5], verts[6], verts[7]],
+            [verts[0], verts[1], verts[2], verts[3]]
+        ]
+
+        # Create a Poly3DCollection
+        box = Poly3DCollection(faces, facecolors='blue', linewidths=1, edgecolors='black', alpha=.5)
+
+        # Add the box to the axes
+        self.ax.add_collection3d(box)
+
+    
+    def add_boxes(self, packed_boxes):
+        if self.isopen_3d:
+            self.ax.cla()
+            for box in packed_boxes:
+                self.add_box(box[3], box[4], box[5], box[0], box[1], box[2])
+
+    def render_3d(self):
+        if self.isopen_3d:
+            # xyz軸の範囲を0から10まで固定します
+            self.ax.set_xlim([0, 10])
+            self.ax.set_ylim([0, 10])
+            self.ax.set_zlim([0, 10])
+            plt.draw()
+            plt.pause(0.001)
+    
+    def run(self):
+        self.render_3d()
+
+    def close_3d(self):
+        self.isopen_3d = False
+        plt.close()
+
+    def close(self):
+        self.close_2d()
+        self.close_3d()
 
     def __del__(self):
         self.close()
@@ -131,11 +238,14 @@ class VecEnv(ABC):
         return self.step_wait()
 
     def render(self, mode='human'):
-        imgs = self.get_images()
+        # imgs = self.get_images()
+        imgs, packed_boxes, leaf_nodes, next_boxes = list(zip(*self.get_images()))
         bigimg = tile_images(imgs)
         if mode == 'human':
             self.get_viewer().imshow(bigimg)
-            return self.get_viewer().isopen
+            self.get_viewer().add_boxes(packed_boxes[0])
+            self.get_viewer().render_3d()
+            return self.get_viewer().isopen_2d and self.get_viewer().isopen_3d
         elif mode == 'rgb_array':
             return bigimg
         else:
@@ -157,7 +267,7 @@ class VecEnv(ABC):
     def get_viewer(self):
         if self.viewer is None:
             # from gym.envs.classic_control import rendering
-            self.viewer = SimpleImageViewer()
+            self.viewer = SimpleViewer()
         return self.viewer
 
 class VecEnvWrapper(VecEnv):

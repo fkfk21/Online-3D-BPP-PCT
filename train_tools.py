@@ -8,6 +8,7 @@ from storage import PCTRolloutStorage
 from kfac import KFACOptimizer
 import random
 import torch
+import matplotlib.pyplot as plt
 np.set_printoptions(threshold=np.inf)
 
 class train_tools(object):
@@ -71,7 +72,7 @@ class train_tools(object):
                 # render the environment
                 if args.render:
                     envs.render()
-                    time.sleep(1)
+                    plt.pause(0.1)
 
                 
 
